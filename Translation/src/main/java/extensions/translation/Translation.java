@@ -6,6 +6,8 @@ import gearth.extensions.extra.tools.PacketInfoSupport;
 import gearth.protocol.HMessage;
 import gearth.protocol.HPacket;
 import gearth.ui.GEarthController;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,6 +18,7 @@ import javafx.stage.Stage;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.nio.charset.StandardCharsets;
 import javafx.scene.control.CheckBox;
@@ -36,7 +39,7 @@ public class Translation extends ExtensionForm {
     public int userid;
     public ComboBox comboColor;
     public ComboBox comboColor2;
-    public CheckBox myMessage;
+    public CheckBox myMessages;
 
     //initialize javaFX elements
     public void initialize() {
@@ -102,53 +105,114 @@ public class Translation extends ExtensionForm {
         try {
 
             packetInfoSupport.intercept(HMessage.Direction.TOCLIENT, "Shout", message -> {
-                HPacket packet = message.getPacket();
-                userid = packet.readInteger();
-                String msg = packet.readString();
+                try {
+                    if (!this._isEnabled) return;
 
-                if (msg.trim().equals("")) {
-                    writeToConsole("Blocking space message.");
-                    return;
-                }
-                if (msg.toLowerCase().startsWith(this.userName.toLowerCase()) || msg.toLowerCase().startsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().startsWith("usmhelper") || msg.toLowerCase().startsWith("helper") || msg.toLowerCase().endsWith(this.userName.toLowerCase()) || msg.toLowerCase().endsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().endsWith("usmhelper") || msg.toLowerCase().endsWith("helper")) {
-                    if (this._isEnabled) {
-                        processMessage(msg, userid);
+                    HPacket packet = message.getPacket();
+                    userid = packet.readInteger();
+                    String msg = packet.readString();
+
+                    if (msg.trim().equals("")) {
+                        writeToConsole("Blocking space message.");
+                        return;
                     }
+                    if (msg.toLowerCase().startsWith(this.userName.toLowerCase()) || msg.toLowerCase().startsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().startsWith("usmhelper") || msg.toLowerCase().startsWith("helper") || msg.toLowerCase().endsWith(this.userName.toLowerCase()) || msg.toLowerCase().endsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().endsWith("usmhelper") || msg.toLowerCase().endsWith("helper")) {
+                        String newMsg = processMessage(msg);
+                        sendMessageToClient(newMsg, userid);
+                    }
+                } catch (Exception e) {
+                    handleError(e);
                 }
             });
 
             // RoomUserTalk
             packetInfoSupport.intercept(HMessage.Direction.TOCLIENT, "Chat", message -> {
-                HPacket packet = message.getPacket();
-                userid = packet.readInteger();
-                String msg = packet.readString();
+                try {
+                    if (!this._isEnabled) return;
 
-                if (msg.trim().equals("")) {
-                    writeToConsole("Blocking space message.");
-                    return;
-                }
-                if (msg.toLowerCase().startsWith(this.userName.toLowerCase()) || msg.toLowerCase().startsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().startsWith("usmhelper") || msg.toLowerCase().startsWith("helper") || msg.toLowerCase().endsWith(this.userName.toLowerCase()) || msg.toLowerCase().endsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().endsWith("usmhelper") || msg.toLowerCase().endsWith("helper")) {
-                    if (this._isEnabled) {
-                        processMessage(msg, userid);
+                    HPacket packet = message.getPacket();
+                    userid = packet.readInteger();
+                    String msg = packet.readString();
+
+                    if (msg.trim().equals("")) {
+                        writeToConsole("Blocking space message.");
+                        return;
                     }
+                    if (msg.toLowerCase().startsWith(this.userName.toLowerCase()) || msg.toLowerCase().startsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().startsWith("usmhelper") || msg.toLowerCase().startsWith("helper") || msg.toLowerCase().endsWith(this.userName.toLowerCase()) || msg.toLowerCase().endsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().endsWith("usmhelper") || msg.toLowerCase().endsWith("helper")) {
+                        String newMsg = processMessage(msg);
+                        sendMessageToClient(newMsg, userid);
+                    }
+                } catch (Exception e) {
+                    handleError(e);
+                }
+            });
+
+            packetInfoSupport.intercept(HMessage.Direction.TOSERVER, "Shout", (HMessage message) -> {
+                try {
+                    if (!this._isEnabled) return;
+
+                    if (!myMessages.isSelected()) return;
+
+                    HPacket packet = message.getPacket();
+                    String msg = packet.readString();
+
+                    if (msg.trim().equals("")) {
+                        writeToConsole("Blocking space message.");
+                        return;
+                    }
+
+                    message.setBlocked(true);
+                    String newMsg = processMessage(msg);
+                    sendMessageToClient(msg, -1);
+                    Object[] data = { packet.readInteger() };
+                    sendMessageToServer(newMsg, "Shout", data);
+                } catch (Exception e) {
+                    handleError(e);
+                }
+            });
+
+            packetInfoSupport.intercept(HMessage.Direction.TOSERVER, "Chat", message -> {
+                try {
+                    if (!this._isEnabled) return;
+
+                    if (!myMessages.isSelected()) return;
+
+                    HPacket packet = message.getPacket();
+                    String msg = packet.readString();
+
+                    if (msg.trim().equals("")) {
+                        writeToConsole("Blocking space message.");
+                        return;
+                    }
+
+                    message.setBlocked(true);
+                    String newMsg = processMessage(msg);
+                    sendMessageToClient(msg, -1);
+                    Object[] data = { packet.readInteger(), packet.readInteger() };
+                    sendMessageToServer(newMsg, "Chat", data);
+                } catch (Exception e) {
+                    handleError(e);
                 }
             });
 
         } catch (Exception e) {
+            handleError(e);
         }
     }
 
 
-    private void processMessage(String message, int userid) {
+    private String processMessage(String message) {
         try {
 
                 String tempMessage = message.toLowerCase();
                 tempMessage = tempMessage.replaceAll("\\p{Punct}", "");
                 String[] msgArr = tempMessage.split(" ");
-                    sendToExternalBot(message, userid);
+                String newMsg = sendToExternalBot(message);
+                return newMsg;
         } catch (Exception e) {
-
+            handleError(e);
         }
+        return null;
     }
     
     private String getLangCode(String comboValue) {
@@ -214,7 +278,7 @@ public class Translation extends ExtensionForm {
         return langCode;
     }
 
-    private void sendToExternalBot(String message, int userid) {
+    private String sendToExternalBot(String message) {
         String sourceLang = getLangCode((String) comboColor.getValue());
         String targetLang = getLangCode((String) comboColor2.getValue());
         try {
@@ -231,34 +295,50 @@ public class Translation extends ExtensionForm {
                     .post();
 
             JSONObject response = new JSONObject(doc.body().text());
-                String msg = (String) response.getString("translatedText");
-            sendMessageToServer(msg, userid);
-
-        } catch (Exception ex) {
-            writeToConsole(ex.getMessage());
+            String msg = (String) response.getString("translatedText");
+            return msg;
+        } catch (Exception e) {
+            handleError(e);
         }
-
+        return null;
     }
 
-    public void sendMessageToServer(String msg, int userid) {
+    public void sendMessageToClient(String msg, int userid) {
         try {
-
             packetInfoSupport.sendToClient("Whisper", userid, msg, 0, 1, 0, 0);
-        } catch (Exception ex) {
+        } catch (Exception e) {
+            handleError(e);
+        }
+    }
+    public void sendMessageToServer(String msg, String packetHash, Object... data) {
+        try {
+            Object[] d = ArrayUtils.addAll(new Object[] {msg}, data);
+            packetInfoSupport.sendToServer(packetHash, d);
+        } catch (Exception e) {
+            handleError(e);
         }
     }
     public void onClickButton(ActionEvent actionEvent) {
         if (_isEnabled) {
             active.setText("Start");
+            writeToConsole("Stopped");
             _isEnabled = false;
         } else {
             active.setText("Stop");
+            writeToConsole("Started");
             _isEnabled = true;
         }
     }
 
     public static void main(String[] args) {
         runExtensionForm(args, Translation.class);
+    }
+    
+    private void handleError(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        writeToConsole(sw.toString());
     }
 
 }

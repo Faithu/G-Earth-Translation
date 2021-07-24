@@ -15,12 +15,12 @@
             <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#b9bec3" height="213.0" layoutX="-11.0" layoutY="-9.0" stroke="BLACK" strokeType="INSIDE" width="362.0" />
          </children>
       </Pane>
-      <Button fx:id="active" layoutX="179.0" layoutY="144.0" mnemonicParsing="false" onAction="#onClickButton" prefHeight="42.0" prefWidth="173.0" text="Start" />
-      <ComboBox fx:id="comboColor" layoutX="27.0" layoutY="80.0" prefHeight="31.0" prefWidth="127.0" />
-      <ComboBox fx:id="comboColor2" layoutX="27.0" layoutY="154.0" prefHeight="31.0" prefWidth="127.0" />
-      <Text layoutX="26.0" layoutY="69.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Source Language" />
-      <Text layoutX="26.0" layoutY="141.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Target Language" />
-      <Text layoutX="26.0" layoutY="30.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Remember not all translations are perfect." />
-      <CheckBox fx:id="myMessages" disable="true" layoutX="177.0" layoutY="73.0" mnemonicParsing="false" prefHeight="42.0" prefWidth="173.0" text="Translate my messages in the opposite direction" textOverrun="WORD_ELLIPSIS" wrapText="true" />
+      <Button fx:id="active" layoutX="98.0" layoutY="156.0" mnemonicParsing="false" onAction="#onClickButton" prefHeight="42.0" prefWidth="173.0" text="Start" />
+      <ComboBox fx:id="comboColor" layoutX="37.0" layoutY="78.0" prefHeight="31.0" prefWidth="127.0" />
+      <ComboBox fx:id="comboColor2" layoutX="206.0" layoutY="78.0" prefHeight="31.0" prefWidth="127.0" />
+      <Text layoutX="36.0" layoutY="67.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Source Language" />
+      <Text layoutX="205.0" layoutY="67.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Target Language" />
+      <Text layoutX="36.0" layoutY="35.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Remember not all translations are perfect." />
+      <CheckBox fx:id="myMessages" layoutX="72.0" layoutY="124.0" mnemonicParsing="false" text="Translate my messages before sending" textOverrun="WORD_ELLIPSIS" />
    </children>
 </AnchorPane>
