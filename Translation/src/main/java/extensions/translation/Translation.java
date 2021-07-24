@@ -81,17 +81,12 @@ public class Translation extends ExtensionForm {
             packetInfoSupport.intercept(HMessage.Direction.TOCLIENT, "Shout", message -> {
                 HPacket packet = message.getPacket();
                 userid = packet.readInteger();
+                String msg = packet.readString();
 
-                String packetExpression = packet.toExpression();
-                if (packetExpression.endsWith("{i:0}{i:0}{i:0}{s:\"\"}{i:-1}")) {
+                if (msg.trim().equals("")) {
                     writeToConsole("Blocking space message.");
                     return;
                 }
-                String[] packetData = packetExpression.split("}");
-                for (int i = 0; i < packetData.length; i++) {
-                    packetData[i] = packetData[i].substring(1);
-                }
-                String msg = packetData[3].substring(3, packetData[3].length() - 1);
                 if (msg.toLowerCase().startsWith(this.userName.toLowerCase()) || msg.toLowerCase().startsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().startsWith("usmhelper") || msg.toLowerCase().startsWith("helper") || msg.toLowerCase().endsWith(this.userName.toLowerCase()) || msg.toLowerCase().endsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().endsWith("usmhelper") || msg.toLowerCase().endsWith("helper")) {
                     if (this._isEnabled) {
                         processMessage(msg, userid);
@@ -103,18 +98,12 @@ public class Translation extends ExtensionForm {
             packetInfoSupport.intercept(HMessage.Direction.TOCLIENT, "Chat", message -> {
                 HPacket packet = message.getPacket();
                 userid = packet.readInteger();
+                String msg = packet.readString();
 
-
-                String packetExpression = packet.toExpression();
-                if (packetExpression.endsWith("{i:0}{i:0}{i:0}{s:\"\"}{i:-1}")) {
+                if (msg.trim().equals("")) {
                     writeToConsole("Blocking space message.");
                     return;
                 }
-                String[] packetData = packetExpression.split("}");
-                for (int i = 0; i < packetData.length; i++) {
-                    packetData[i] = packetData[i].substring(1);
-                }
-                String msg = packetData[3].substring(3, packetData[3].length() - 1);
                 if (msg.toLowerCase().startsWith(this.userName.toLowerCase()) || msg.toLowerCase().startsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().startsWith("usmhelper") || msg.toLowerCase().startsWith("helper") || msg.toLowerCase().endsWith(this.userName.toLowerCase()) || msg.toLowerCase().endsWith(": " + this.userName.toLowerCase()) || msg.toLowerCase().endsWith("usmhelper") || msg.toLowerCase().endsWith("helper")) {
                     if (this._isEnabled) {
                         processMessage(msg, userid);
