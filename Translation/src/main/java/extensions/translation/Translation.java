@@ -18,6 +18,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.nio.charset.StandardCharsets;
+import javafx.scene.control.CheckBox;
 
 @ExtensionInfo(
         Title = "Translation bot",
@@ -34,11 +35,13 @@ public class Translation extends ExtensionForm {
     private boolean _isEnabled = false;
     public int userid;
     public ComboBox comboColor;
-    public String TransLang;
+    public ComboBox comboColor2;
+    public CheckBox myMessage;
 
     //initialize javaFX elements
     public void initialize() {
         comboColor.getItems().addAll(
+                "Auto",
                 "English",
                 "Arabic",
                 "Chinese",
@@ -58,6 +61,26 @@ public class Translation extends ExtensionForm {
                 "Vietnamese"
         );
         comboColor.getSelectionModel().selectFirst();
+        comboColor2.getItems().addAll(
+                "English",
+                "Arabic",
+                "Chinese",
+                "French",
+                "German",
+                "Hindi",
+                "Indonesian",
+                "Irish",
+                "Italian",
+                "Japanese",
+                "Korean",
+                "Polish",
+                "Portuguese",
+                "Russian",
+                "Spanish",
+                "Turkish",
+                "Vietnamese"
+        );
+        comboColor2.getSelectionModel().selectFirst();
     }
 
     @Override
@@ -127,69 +150,79 @@ public class Translation extends ExtensionForm {
 
         }
     }
-
-    private void sendToExternalBot(String message, int userid) {
-        switch ((String) comboColor.getValue()) {
+    
+    private String getLangCode(String comboValue) {
+        String langCode;
+        switch (comboValue) {
+            case "Auto":
+                langCode = "auto";
+                break;
             case "English":
-                TransLang = "en";
+                langCode = "en";
                 break;
             case "Arabic":
-                TransLang = "ar";
+                langCode = "ar";
                 break;
             case "Chinese":
-                TransLang = "zh";
+                langCode = "zh";
                 break;
             case "French":
-                TransLang = "fr";
+                langCode = "fr";
                 break;
             case "German":
-                TransLang = "de";
+                langCode = "de";
                 break;
             case "Hindi":
-                TransLang = "hi";
+                langCode = "hi";
                 break;
             case "Indonesian":
-                TransLang = "id";
+                langCode = "id";
             case "Irish":
-                TransLang = "ga";
+                langCode = "ga";
                 break;
             case "Italian":
-                TransLang = "it";
+                langCode = "it";
                 break;
             case "Japanese":
-                TransLang = "ja";
+                langCode = "ja";
                 break;
             case "Korean":
-                TransLang = "ko";
+                langCode = "ko";
                 break;
             case "Polish":
-                TransLang = "pl";
+                langCode = "pl";
                 break;
             case "Portuguese":
-                TransLang = "pt";
+                langCode = "pt";
                 break;
             case "Russian":
-                TransLang = "ru";
+                langCode = "ru";
                 break;
             case "Spanish":
-                TransLang = "es";
+                langCode = "es";
                 break;
             case "Turkish":
-                TransLang = "tr";
+                langCode = "tr";
                 break;
             case "Vietnamese":
-                TransLang = "vi";
+                langCode = "vi";
                 break;
 
             default:
-                TransLang = "en";
+                langCode = "en";
         }
+        return langCode;
+    }
+
+    private void sendToExternalBot(String message, int userid) {
+        String sourceLang = getLangCode((String) comboColor.getValue());
+        String targetLang = getLangCode((String) comboColor2.getValue());
         try {
             message = new String(message.getBytes(StandardCharsets.UTF_8));
             Document doc = Jsoup.connect("https://translate.argosopentech.com/translate")
                     .data("q", message)
-                    .data("source", "auto")
-                    .data("target", TransLang)
+                    .data("source", sourceLang)
+                    .data("target", targetLang)
                     .data("api_key", "")
                     .userAgent("Mozilla")
                     .header("Referer", "https://translate.argosopentech.com/")
